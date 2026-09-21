@@ -240,7 +240,21 @@
     let dbDiesel = [];
     let chartPrefixos, chartMotoristas;
 
-    // Converte valores numéricos no padrão brasileiro (ex: "72,6" ou "18.301") para número real
+    // Função para buscar valor de coluna sem se preocupar com maiúsculas/minúsculas
+    function getCampo(linha, ...nomesPossiveis) {
+      if (!linha) return '';
+      const chaves = Object.keys(linha);
+      for (let nome of nomesPossiveis) {
+        if (linha[nome] !== undefined && linha[nome] !== '') return linha[nome];
+        const chaveEncontrada = chaves.find(k => k.trim().toLowerCase() === nome.toLowerCase());
+        if (chaveEncontrada && linha[chaveEncontrada] !== undefined && linha[chaveEncontrada] !== '') {
+          return linha[chaveEncontrada];
+        }
+      }
+      return '';
+    }
+
+    // Converte textos numéricos do Forms BR (ex: "72,6" ou "18.301") para número real
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined || valor === '') return 0;
       if (typeof valor === 'number') return valor;
@@ -276,8 +290,11 @@
       const motoristas = new Set();
 
       dbDiesel.forEach(r => {
-        if (r.PREFIXO) prefixos.add(r.PREFIXO);
-        if (r.MOTORISTA) motoristas.add(r.MOTORISTA);
+        const pref = getCampo(r, 'prefixo', 'PREFIXO', 'Prefixo');
+        const mot = getCampo(r, 'motorista', 'MOTORISTA', 'Motorista');
+        
+        if (pref) prefixos.add(pref);
+        if (mot) motoristas.add(mot);
       });
 
       const selPrefixo = document.getElementById('filterPrefixo');
@@ -294,18 +311,22 @@
     }
 
     function aplicarFiltros() {
-      const pref = document.getElementById('filterPrefixo').value;
-      const mot = document.getElementById('filterMotorista').value;
+      const prefSelecionado = document.getElementById('filterPrefixo').value;
+      const motSelecionado = document.getElementById('filterMotorista').value;
 
       const filtrados = dbDiesel.filter(item => {
-        const matchPref = pref === 'TODOS' || String(item.PREFIXO) === String(pref);
-        const matchMot = mot === 'TODOS' || item.MOTORISTA === mot;
+        const prefItem = getCampo(item, 'prefixo', 'PREFIXO', 'Prefixo');
+        const motItem = getCampo(item, 'motorista', 'MOTORISTA', 'Motorista');
+
+        const matchPref = prefSelecionado === 'TODOS' || String(prefItem) === String(prefSelecionado);
+        const matchMot = motSelecionado === 'TODOS' || String(motItem) === String(motSelecionado);
         return matchPref && matchMot;
       });
 
       let totalLitros = 0;
       filtrados.forEach(r => {
-        totalLitros += parseNumeroBr(r.LITROS);
+        const lit = getCampo(r, 'litros', 'LITROS', 'Litros');
+        totalLitros += parseNumeroBr(lit);
       });
 
       const qtd = filtrados.length;
@@ -316,15 +337,23 @@
       document.getElementById('kpiMediaLitros').innerText = `${media} L`;
 
       const tbody = document.getElementById('tbodyDiesel');
-      tbody.innerHTML = filtrados.slice(0, 100).map(r => `
-        <tr>
-          <td>${r['Carimbo de data/hora'] || '-'}</td>
-          <td><b>${r.PREFIXO || '-'}</b></td>
-          <td>${r.MOTORISTA || '-'}</td>
-          <td>${r['KM ATUAL'] || '-'}</td>
-          <td><span class="badge">${parseNumeroBr(r.LITROS).toFixed(1)} L</span></td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = filtrados.slice(0, 100).map(r => {
+        const dataHora = getCampo(r, 'Carimbo de data/hora', 'carimbo de data/hora', 'data', 'Data');
+        const pref = getCampo(r, 'prefixo', 'PREFIXO', 'Prefixo');
+        const mot = getCampo(r, 'motorista', 'MOTORISTA', 'Motorista');
+        const km = getCampo(r, 'km atual', 'KM ATUAL', 'Km Atual', 'km');
+        const lit = getCampo(r, 'litros', 'LITROS', 'Litros');
+
+        return `
+          <tr>
+            <td>${dataHora || '-'}</td>
+            <td><b>${pref || '-'}</b></td>
+            <td>${mot || '-'}</td>
+            <td>${km || '-'}</td>
+            <td><span class="badge">${parseNumeroBr(lit).toFixed(1)} L</span></td>
+          </tr>
+        `;
+      }).join('');
 
       atualizarGraficos(filtrados);
     }
@@ -348,8 +377,9 @@
     function atualizarGraficos(dados) {
       const mapPref = {};
       dados.forEach(r => {
-        const p = r.PREFIXO || 'N/D';
-        mapPref[p] = (mapPref[p] || 0) + parseNumeroBr(r.LITROS);
+        const p = getCampo(r, 'prefixo', 'PREFIXO', 'Prefixo') || 'N/D';
+        const lit = getCampo(r, 'litros', 'LITROS', 'Litros');
+        mapPref[p] = (mapPref[p] || 0) + parseNumeroBr(lit);
       });
 
       chartPrefixos.data.labels = Object.keys(mapPref);
@@ -358,8 +388,9 @@
 
       const mapMot = {};
       dados.forEach(r => {
-        const m = r.MOTORISTA || 'N/D';
-        mapMot[m] = (mapMot[m] || 0) + parseNumeroBr(r.LITROS);
+        const m = getCampo(r, 'motorista', 'MOTORISTA', 'Motorista') || 'N/D';
+        const lit = getCampo(r, 'litros', 'LITROS', 'Litros');
+        mapMot[m] = (mapMot[m] || 0) + parseNumeroBr(lit);
       });
 
       const sortedMot = Object.entries(mapMot).sort((a,b) => b[1] - a[1]).slice(0, 7);
