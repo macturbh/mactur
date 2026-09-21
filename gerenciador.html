@@ -3,26 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Integrado - Manutenção, Checklist & Diesel</title>
+  <title>Mactur - Painel de Controle de Diesel e Frota</title>
   <!-- Chart.js para Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- FontAwesome para Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg-primary: #f4f6f9;
+      --bg-primary: #f4f7f4;
       --bg-card: #ffffff;
-      --text-main: #2c3e50;
-      --text-muted: #7f8c8d;
-      --accent-green: #27ae60;
-      --accent-yellow: #f39c12;
-      --accent-blue: #2980b9;
+      --text-main: #1c2b1e;
+      --text-muted: #5d6e5f;
+      --mactur-green: #008037;   /* Verde Mactur */
+      --mactur-yellow: #f1c40f;  /* Amarelo Mactur */
+      --border-color: #e1e9e2;
       --accent-red: #c0392b;
-      --border-color: #e2e8f0;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: var(--bg-primary); color: var(--text-main); padding: 20px; }
+    
+    body { 
+      background-color: var(--bg-primary); 
+      color: var(--text-main); 
+      padding: 20px; 
+    }
 
     header {
       display: flex;
@@ -33,12 +37,13 @@
       padding: 20px 25px;
       border-radius: 12px;
       box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      border-left: 6px solid var(--mactur-green);
     }
 
     .title-area h1 { font-size: 1.5rem; color: var(--text-main); font-weight: 700; }
     .title-area p { font-size: 0.875rem; color: var(--text-muted); }
 
-    /* Barra de Filtros Globais */
+    /* Barra de Filtros */
     .filter-bar {
       display: flex;
       gap: 15px;
@@ -49,11 +54,12 @@
       box-shadow: 0 4px 6px rgba(0,0,0,0.05);
       flex-wrap: wrap;
       align-items: center;
+      border-top: 3px solid var(--mactur-yellow);
     }
 
     .filter-group { display: flex; flex-direction: column; gap: 5px; min-width: 180px; }
     .filter-group label { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
-    .filter-group select, .filter-group input {
+    .filter-group select {
       padding: 8px 12px;
       border: 1px solid var(--border-color);
       border-radius: 6px;
@@ -77,16 +83,14 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-left: 5px solid var(--accent-blue);
+      border-left: 5px solid var(--mactur-green);
     }
 
-    .kpi-card.diesel { border-left-color: var(--accent-yellow); }
-    .kpi-card.maint { border-left-color: var(--accent-red); }
-    .kpi-card.kml { border-left-color: var(--accent-green); }
+    .kpi-card.yellow { border-left-color: var(--mactur-yellow); }
 
     .kpi-info h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); }
-    .kpi-info .value { font-size: 1.5rem; font-weight: bold; margin-top: 5px; }
-    .kpi-icon { font-size: 2rem; opacity: 0.2; }
+    .kpi-info .value { font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: var(--text-main); }
+    .kpi-icon { font-size: 2rem; opacity: 0.25; color: var(--mactur-green); }
 
     /* Layout dos Gráficos */
     .charts-grid {
@@ -105,13 +109,7 @@
 
     .chart-card h3 { font-size: 1rem; margin-bottom: 15px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
 
-    /* Tabelas de Dados */
-    .data-tables-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-      gap: 20px;
-    }
-
+    /* Tabela de Abastecimentos */
     .table-card {
       background: var(--bg-card);
       padding: 20px;
@@ -120,15 +118,8 @@
       overflow-x: auto;
     }
 
-    .table-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
-    }
-
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
-    th { background: #f8fafc; padding: 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); }
+    th { background: #f1f7f2; padding: 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); }
     td { padding: 10px; border-bottom: 1px solid var(--border-color); }
 
     .badge {
@@ -136,13 +127,12 @@
       border-radius: 12px;
       font-size: 0.75rem;
       font-weight: bold;
+      background: #e8f5e9;
+      color: var(--mactur-green);
     }
-    .badge-success { background: #e8f8f0; color: var(--accent-green); }
-    .badge-warning { background: #fef5e7; color: var(--accent-yellow); }
-    .badge-danger { background: #fadbd8; color: var(--accent-red); }
 
-    button.btn-add {
-      background: var(--accent-blue);
+    button.btn-refresh {
+      background: var(--mactur-green);
       color: white;
       border: none;
       padding: 8px 14px;
@@ -153,300 +143,237 @@
       align-items: center;
       gap: 6px;
     }
-    button.btn-add:hover { opacity: 0.9; }
+    button.btn-refresh:hover { opacity: 0.9; }
 
     @media (max-width: 768px) {
-      .charts-grid, .data-tables-grid { grid-template-columns: 1fr; }
+      .charts-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Cabecalho Principal -->
   <header>
     <div class="title-area">
-      <h1><i class="fa-solid fa-truck-front"></i> Painel Operacional de Frota</h1>
-      <p>Gestão unificada de Checklists, Manutenção e Abastecimento de Diesel</p>
+      <h1><i class="fa-solid fa-bus" style="color: var(--mactur-green);"></i> Mactur - Painel de Abastecimento (Diesel)</h1>
+      <p>Dados integrados diretamente do Google Forms em tempo real</p>
     </div>
-    <button class="btn-add" onclick="exportData()"><i class="fa-solid fa-file-csv"></i> Exportar Dados</button>
+    <button class="btn-refresh" onclick="carregarDados()"><i class="fa-solid fa-sync"></i> Atualizar Dados</button>
   </header>
 
-  <!-- Filtros Globais (Incluso Filtro por Garagem) -->
+  <!-- Filtros -->
   <div class="filter-bar">
     <div class="filter-group">
-      <label><i class="fa-solid fa-warehouse"></i> Garagem / Unidade</label>
-      <select id="filterGaragem" onchange="applyFilters()">
-        <option value="TODAS">Todas as Garagens</option>
-        <option value="Garagem BH">Garagem Belo Horizonte</option>
-        <option value="Garagem Contagem">Garagem Contagem</option>
-        <option value="Garagem SP">Garagem São Paulo</option>
-        <option value="Garagem GO">Garagem Goiânia</option>
+      <label><i class="fa-solid fa-bus"></i> Prefixo / Veículo</label>
+      <select id="filterPrefixo" onchange="aplicarFiltros()">
+        <option value="TODOS">Todos os Prefixos</option>
       </select>
     </div>
 
     <div class="filter-group">
-      <label><i class="fa-solid fa-bus"></i> Veículo / Placa</label>
-      <select id="filterVeiculo" onchange="applyFilters()">
-        <option value="TODOS">Todos os Veículos</option>
-        <option value="BUS-101">BUS-101 (Volvo B380R)</option>
-        <option value="BUS-102">BUS-102 (Scania K360)</option>
-        <option value="BUS-103">BUS-103 (MB O-500RSD)</option>
-        <option value="CARGO-201">CARGO-201 (Volvo FH 540)</option>
+      <label><i class="fa-solid fa-user-gear"></i> Motorista</label>
+      <select id="filterMotorista" onchange="aplicarFiltros()">
+        <option value="TODOS">Todos os Motoristas</option>
       </select>
-    </div>
-
-    <div class="filter-group">
-      <label><i class="fa-solid fa-calendar"></i> Período</label>
-      <input type="month" id="filterMes" value="2026-04" onchange="applyFilters()">
     </div>
   </div>
 
-  <!-- Cards de KPIs Indicadores -->
+  <!-- Indicadores KPIs -->
   <div class="kpi-grid">
-    <div class="kpi-card diesel">
+    <div class="kpi-card yellow">
       <div class="kpi-info">
-        <h3>Custo Total Diesel</h3>
-        <div class="value" id="kpiGastoDiesel">R$ 0,00</div>
+        <h3>Total Litros Abastecidos</h3>
+        <div class="value" id="kpiTotalLitros">0 L</div>
       </div>
       <i class="fa-solid fa-gas-pump kpi-icon"></i>
     </div>
 
-    <div class="kpi-card kml">
-      <div class="kpi-info">
-        <h3>Consumo Médio (Km/L)</h3>
-        <div class="value" id="kpiKmlMedio">0.0 km/L</div>
-      </div>
-      <i class="fa-solid fa-gauge-high kpi-icon"></i>
-    </div>
-
-    <div class="kpi-card maint">
-      <div class="kpi-info">
-        <h3>Custo Manutenção</h3>
-        <div class="value" id="kpiGastoMaint">R$ 0,00</div>
-      </div>
-      <i class="fa-solid fa-wrench kpi-icon"></i>
-    </div>
-
     <div class="kpi-card">
       <div class="kpi-info">
-        <h3>Conformidade Checklist</h3>
-        <div class="value" id="kpiChecklistRate">0%</div>
+        <h3>Abastecimentos Registrados</h3>
+        <div class="value" id="kpiQtdAbastecimentos">0</div>
       </div>
-      <i class="fa-solid fa-clipboard-check kpi-icon"></i>
+      <i class="fa-solid fa-clipboard-list kpi-icon"></i>
+    </div>
+
+    <div class="kpi-card yellow">
+      <div class="kpi-info">
+        <h3>Média de Litros / Abastecimento</h3>
+        <div class="value" id="kpiMediaLitros">0 L</div>
+      </div>
+      <i class="fa-solid fa-calculator kpi-icon"></i>
     </div>
   </div>
 
-  <!-- Gráficos de Controle -->
+  <!-- Gráficos -->
   <div class="charts-grid">
     <div class="chart-card">
-      <h3><i class="fa-solid fa-gas-pump" style="color:var(--accent-yellow)"></i> Consumo de Diesel por Veículo (Km/L)</h3>
-      <canvas id="chartDieselKml"></canvas>
+      <h3><i class="fa-solid fa-chart-bar" style="color:var(--mactur-green)"></i> Litros por Prefixo (Veículo)</h3>
+      <canvas id="chartLitrosPrefixo"></canvas>
     </div>
 
     <div class="chart-card">
-      <h3><i class="fa-solid fa-chart-pie" style="color:var(--accent-red)"></i> Gastos: Diesel vs Manutenção</h3>
-      <canvas id="chartComparativoGastos"></canvas>
+      <h3><i class="fa-solid fa-user" style="color:var(--mactur-yellow)"></i> Top Motoristas por Volume (Litros)</h3>
+      <canvas id="chartMotoristas"></canvas>
     </div>
   </div>
 
-  <!-- Tabelas de Dados e Registros -->
-  <div class="data-tables-grid">
-    
-    <!-- Tabela Controle de Diesel -->
-    <div class="table-card">
-      <div class="table-header">
-        <h3><i class="fa-solid fa-gas-pump"></i> Últimos Abastecimentos (Diesel)</h3>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Data</th>
-            <th>Veículo</th>
-            <th>Garagem</th>
-            <th>Litros</th>
-            <th>Km/L</th>
-            <th>Total (R$)</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyDiesel">
-          <!-- Alimentado via JS -->
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Tabela Checklists e Manutenção -->
-    <div class="table-card">
-      <div class="table-header">
-        <h3><i class="fa-solid fa-list-check"></i> Status de Checklists e Manutenção</h3>
-      </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Veículo</th>
-            <th>Garagem</th>
-            <th>Inspeção</th>
-            <th>Manutenção Prev.</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody id="tbodyChecklist">
-          <!-- Alimentado via JS -->
-        </tbody>
-      </table>
-    </div>
-
+  <!-- Tabela de Histórico -->
+  <div class="table-card">
+    <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Registros da Planilha</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Data / Hora</th>
+          <th>Prefixo</th>
+          <th>Motorista</th>
+          <th>KM Atual</th>
+          <th>Litros</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyDiesel"></tbody>
+    </table>
   </div>
 
   <script>
-    // Base de dados simulada vinda dos formulários do Google Forms
-    const dbDiesel = [
-      { id: 1, data: '2026-04-02', veiculo: 'BUS-101', garagem: 'Garagem BH', litros: 220, kmRodados: 616, valorTotal: 1298.00 },
-      { id: 2, data: '2026-04-05', veiculo: 'BUS-102', garagem: 'Garagem Contagem', litros: 190, kmRodados: 513, valorTotal: 1121.00 },
-      { id: 3, data: '2026-04-08', veiculo: 'BUS-103', garagem: 'Garagem SP', litros: 310, kmRodados: 775, valorTotal: 1829.00 },
-      { id: 4, data: '2026-04-10', veiculo: 'CARGO-201', garagem: 'Garagem GO', litros: 400, kmRodados: 920, valorTotal: 2360.00 },
-      { id: 5, data: '2026-04-12', veiculo: 'BUS-101', garagem: 'Garagem BH', litros: 210, kmRodados: 598, valorTotal: 1239.00 },
-    ];
+    // Cole aqui a URL gerada no seu Apps Script
+    const SCRIPT_URL = 'COLE_AQUI_SUA_URL_DO_APPS_SCRIPT';
 
-    const dbManutencao = [
-      { id: 1, veiculo: 'BUS-101', garagem: 'Garagem BH', data: '2026-04-01', tipo: 'Troca de Óleo', valor: 850.00, checklistStatus: 'OK' },
-      { id: 2, veiculo: 'BUS-102', garagem: 'Garagem Contagem', data: '2026-04-03', tipo: 'Sistema de Freios', valor: 1400.00, checklistStatus: 'Atenção' },
-      { id: 3, veiculo: 'BUS-103', garagem: 'Garagem SP', data: '2026-04-07', tipo: 'Revisão Geral Pneus', valor: 2100.00, checklistStatus: 'OK' },
-      { id: 4, veiculo: 'CARGO-201', garagem: 'Garagem GO', data: '2026-04-09', tipo: 'Filtros de Ar e Combustível', valor: 620.00, checklistStatus: 'OK' },
-    ];
+    let dbDiesel = [];
+    let chartPrefixos, chartMotoristas;
 
-    // Instâncias dos gráficos
-    let chartKml, chartGastos;
+    // Função para tratar números no formato brasileiro (ex: "72,6" ou "18.301")
+    function parseNumeroBr(valor) {
+      if (!valor) return 0;
+      if (typeof valor === 'number') return valor;
+      let str = valor.toString().trim();
+      str = str.replace(/\./g, '').replace(',', '.');
+      return parseFloat(str) || 0;
+    }
 
-    function initCharts() {
-      // Chart 1: Bar Chart Km/L
-      const ctxKml = document.getElementById('chartDieselKml').getContext('2d');
-      chartKml = new Chart(ctxKml, {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'Média de Km/L',
-            data: [],
-            backgroundColor: '#f39c12',
-            borderRadius: 6
-          }]
-        },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    async function carregarDados() {
+      if (!SCRIPT_URL || SCRIPT_URL.includes('COLE_AQUI')) {
+        alert("Cole a URL gerada do Apps Script na variável SCRIPT_URL no código!");
+        return;
+      }
+
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const json = await res.json();
+        dbDiesel = json.diesel || [];
+        
+        popularFiltros();
+        aplicarFiltros();
+      } catch (err) {
+        console.error("Erro ao buscar dados da planilha:", err);
+      }
+    }
+
+    function popularFiltros() {
+      const prefixos = new Set();
+      const motoristas = new Set();
+
+      dbDiesel.forEach(r => {
+        if (r.PREFIXO) prefixos.add(r.PREFIXO);
+        if (r.MOTORISTA) motoristas.add(r.MOTORISTA);
       });
 
-      // Chart 2: Pie Chart Comparativo
-      const ctxGastos = document.getElementById('chartComparativoGastos').getContext('2d');
-      chartGastos = new Chart(ctxGastos, {
-        type: 'doughnut',
-        data: {
-          labels: ['Diesel', 'Manutenção'],
-          datasets: [{
-            data: [0, 0],
-            backgroundColor: ['#f39c12', '#c0392b']
-          }]
-        },
-        options: { responsive: true }
+      const selPrefixo = document.getElementById('filterPrefixo');
+      selPrefixo.innerHTML = '<option value="TODOS">Todos os Prefixos</option>';
+      Array.from(prefixos).sort().forEach(p => {
+        selPrefixo.innerHTML += `<option value="${p}">${p}</option>`;
+      });
+
+      const selMotorista = document.getElementById('filterMotorista');
+      selMotorista.innerHTML = '<option value="TODOS">Todos os Motoristas</option>';
+      Array.from(motoristas).sort().forEach(m => {
+        selMotorista.innerHTML += `<option value="${m}">${m}</option>`;
       });
     }
 
-    function applyFilters() {
-      const selectedGaragem = document.getElementById('filterGaragem').value;
-      const selectedVeiculo = document.getElementById('filterVeiculo').value;
+    function aplicarFiltros() {
+      const pref = document.getElementById('filterPrefixo').value;
+      const mot = document.getElementById('filterMotorista').value;
 
-      // Filtrar Diesel
-      const filteredDiesel = dbDiesel.filter(item => {
-        const matchGaragem = selectedGaragem === 'TODAS' || item.garagem === selectedGaragem;
-        const matchVeiculo = selectedVeiculo === 'TODOS' || item.veiculo === selectedVeiculo;
-        return matchGaragem && matchVeiculo;
+      const filtrados = dbDiesel.filter(item => {
+        const matchPref = pref === 'TODOS' || String(item.PREFIXO) === String(pref);
+        const matchMot = mot === 'TODOS' || item.MOTORISTA === mot;
+        return matchPref && matchMot;
       });
 
-      // Filtrar Manutenção
-      const filteredMaint = dbManutencao.filter(item => {
-        const matchGaragem = selectedGaragem === 'TODAS' || item.garagem === selectedGaragem;
-        const matchVeiculo = selectedVeiculo === 'TODOS' || item.veiculo === selectedVeiculo;
-        return matchGaragem && matchVeiculo;
+      // Cálculos
+      let totalLitros = 0;
+      filtrados.forEach(r => {
+        totalLitros += parseNumeroBr(r.LITROS);
       });
 
-      // Recalcular KPIs
-      const totalGastoDiesel = filteredDiesel.reduce((acc, curr) => acc + curr.valorTotal, 0);
-      const totalLitros = filteredDiesel.reduce((acc, curr) => acc + curr.litros, 0);
-      const totalKm = filteredDiesel.reduce((acc, curr) => acc + curr.kmRodados, 0);
-      const kmlMedio = totalLitros > 0 ? (totalKm / totalLitros).toFixed(2) : '0.00';
+      const qtd = filtrados.length;
+      const media = qtd > 0 ? (totalLitros / qtd).toFixed(1) : 0;
 
-      const totalGastoMaint = filteredMaint.reduce((acc, curr) => acc + curr.valor, 0);
-      const okChecklists = filteredMaint.filter(i => i.checklistStatus === 'OK').length;
-      const rateChecklist = filteredMaint.length > 0 ? Math.round((okChecklists / filteredMaint.length) * 100) : 100;
+      // Atualizar KPIs
+      document.getElementById('kpiTotalLitros').innerText = `${totalLitros.toLocaleString('pt-BR', {minimumFractionDigits: 1})} L`;
+      document.getElementById('kpiQtdAbastecimentos').innerText = qtd;
+      document.getElementById('kpiMediaLitros').innerText = `${media} L`;
 
-      // Atualizar HTML dos KPIs
-      document.getElementById('kpiGastoDiesel').innerText = `R$ ${totalGastoDiesel.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-      document.getElementById('kpiKmlMedio').innerText = `${kmlMedio} km/L`;
-      document.getElementById('kpiGastoMaint').innerText = `R$ ${totalGastoMaint.toLocaleString('pt-BR', {minimumFractionDigits:2})}`;
-      document.getElementById('kpiChecklistRate').innerText = `${rateChecklist}%`;
-
-      // Atualizar Tabela Diesel
-      const tbodyDiesel = document.getElementById('tbodyDiesel');
-      tbodyDiesel.innerHTML = filteredDiesel.map(d => {
-        const kml = (d.kmRodados / d.litros).toFixed(2);
-        return `
-          <tr>
-            <td>${d.data}</td>
-            <td><b>${d.veiculo}</b></td>
-            <td>${d.garagem}</td>
-            <td>${d.litros} L</td>
-            <td><span class="badge badge-success">${kml} km/L</span></td>
-            <td>R$ ${d.valorTotal.toFixed(2)}</td>
-          </tr>
-        `;
-      }).join('');
-
-      // Atualizar Tabela Checklist
-      const tbodyCheck = document.getElementById('tbodyChecklist');
-      tbodyCheck.innerHTML = filteredMaint.map(m => `
+      // Preencher Tabela
+      const tbody = document.getElementById('tbodyDiesel');
+      tbody.innerHTML = filtrados.slice(0, 50).map(r => `
         <tr>
-          <td><b>${m.veiculo}</b></td>
-          <td>${m.garagem}</td>
-          <td>${m.tipo}</td>
-          <td>R$ ${m.valor.toFixed(2)}</td>
-          <td>
-            <span class="badge ${m.checklistStatus === 'OK' ? 'badge-success' : 'badge-warning'}">
-              ${m.checklistStatus}
-            </span>
-          </td>
+          <td>${r['Carimbo de data/hora'] || '-'}</td>
+          <td><b>${r.PREFIXO || '-'}</b></td>
+          <td>${r.MOTORISTA || '-'}</td>
+          <td>${r['KM ATUAL'] || '-'}</td>
+          <td><span class="badge">${parseNumeroBr(r.LITROS).toFixed(1)} L</span></td>
         </tr>
       `).join('');
 
-      // Atualizar Gráficos
-      updateCharts(filteredDiesel, totalGastoDiesel, totalGastoMaint);
+      atualizarGraficos(filtrados);
     }
 
-    function updateCharts(dieselData, totalDiesel, totalMaint) {
-      // Agrupar Km/L por veículo
-      const veiculosMap = {};
-      dieselData.forEach(item => {
-        if (!veiculosMap[item.veiculo]) veiculosMap[item.veiculo] = { litros: 0, km: 0 };
-        veiculosMap[item.veiculo].litros += item.litros;
-        veiculosMap[item.veiculo].km += item.kmRodados;
+    function initCharts() {
+      const ctxP = document.getElementById('chartLitrosPrefixo').getContext('2d');
+      chartPrefixos = new Chart(ctxP, {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Total Litros', data: [], backgroundColor: '#008037', borderRadius: 5 }] },
+        options: { responsive: true }
       });
 
-      const labels = Object.keys(veiculosMap);
-      const kmlValues = labels.map(v => (veiculosMap[v].km / veiculosMap[v].litros).toFixed(2));
-
-      chartKml.data.labels = labels;
-      chartKml.data.datasets[0].data = kmlValues;
-      chartKml.update();
-
-      chartGastos.data.datasets[0].data = [totalDiesel, totalMaint];
-      chartGastos.update();
+      const ctxM = document.getElementById('chartMotoristas').getContext('2d');
+      chartMotoristas = new Chart(ctxM, {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Litros Abastecidos', data: [], backgroundColor: '#f1c40f', borderRadius: 5 }] },
+        options: { responsive: true, indexAxis: 'y' }
+      });
     }
 
-    function exportData() {
-      alert("Relatório gerado em CSV com filtro da garagem atual!");
+    function atualizarGraficos(dados) {
+      // Litros por Prefixo
+      const mapPref = {};
+      dados.forEach(r => {
+        const p = r.PREFIXO || 'N/D';
+        mapPref[p] = (mapPref[p] || 0) + parseNumeroBr(r.LITROS);
+      });
+
+      chartPrefixos.data.labels = Object.keys(mapPref);
+      chartPrefixos.data.datasets[0].data = Object.values(mapPref);
+      chartPrefixos.update();
+
+      // Litros por Motorista (Top 7)
+      const mapMot = {};
+      dados.forEach(r => {
+        const m = r.MOTORISTA || 'N/D';
+        mapMot[m] = (mapMot[m] || 0) + parseNumeroBr(r.LITROS);
+      });
+
+      const sortedMot = Object.entries(mapMot).sort((a,b) => b[1] - a[1]).slice(0, 7);
+
+      chartMotoristas.data.labels = sortedMot.map(item => item[0]);
+      chartMotoristas.data.datasets[0].data = sortedMot.map(item => item[1]);
+      chartMotoristas.update();
     }
 
-    // Inicialização ao carregar
     window.onload = () => {
       initCharts();
-      applyFilters();
+      carregarDados();
     };
   </script>
 </body>
