@@ -234,13 +234,13 @@
   </div>
 
   <script>
-    // URL do seu Google Apps Script já inserida!
+    // URL oficial do seu Apps Script
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZNeS_dO53xQa2a3Ld9_lb0Vwn2nb_UZO6aCY10ReB_qKHyVX7u_3ako-mNjDqYbzMbQ/exec';
 
     let dbDiesel = [];
     let chartPrefixos, chartMotoristas;
 
-    // Converte textos numéricos do Forms BR (ex: "72,6" ou "18.301") para número real
+    // Converte valores numéricos no padrão brasileiro (ex: "72,6" ou "18.301") para número real
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined || valor === '') return 0;
       if (typeof valor === 'number') return valor;
@@ -267,7 +267,7 @@
         popularFiltros();
         aplicarFiltros();
       } catch (err) {
-        console.error("Erro ao buscar dados da planilha:", err);
+        console.error("Erro ao carregar dados do Apps Script:", err);
       }
     }
 
