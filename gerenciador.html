@@ -17,7 +17,6 @@
       --mactur-green: #008037;   /* Verde Mactur */
       --mactur-yellow: #f1c40f;  /* Amarelo Mactur */
       --border-color: #e1e9e2;
-      --accent-red: #c0392b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -235,27 +234,31 @@
   </div>
 
   <script>
-    // Cole aqui a URL gerada no seu Apps Script
-    const SCRIPT_URL = 'COLE_AQUI_SUA_URL_DO_APPS_SCRIPT';
+    // URL do seu Google Apps Script já inserida!
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZNeS_dO53xQa2a3Ld9_lb0Vwn2nb_UZO6aCY10ReB_qKHyVX7u_3ako-mNjDqYbzMbQ/exec';
 
     let dbDiesel = [];
     let chartPrefixos, chartMotoristas;
 
-    // Função para tratar números no formato brasileiro (ex: "72,6" ou "18.301")
+    // Converte textos numéricos do Forms BR (ex: "72,6" ou "18.301") para número real
     function parseNumeroBr(valor) {
-      if (!valor) return 0;
+      if (valor === null || valor === undefined || valor === '') return 0;
       if (typeof valor === 'number') return valor;
       let str = valor.toString().trim();
-      str = str.replace(/\./g, '').replace(',', '.');
+      if (str.includes(',')) {
+        str = str.replace(/\./g, '').replace(',', '.');
+      } else {
+        const parts = str.split('.');
+        if (parts.length > 2) {
+          str = str.replace(/\./g, '');
+        } else if (parts.length === 2 && parts[1].length === 3 && parseInt(parts[0]) < 1000) {
+          str = str.replace('.', '');
+        }
+      }
       return parseFloat(str) || 0;
     }
 
     async function carregarDados() {
-      if (!SCRIPT_URL || SCRIPT_URL.includes('COLE_AQUI')) {
-        alert("Cole a URL gerada do Apps Script na variável SCRIPT_URL no código!");
-        return;
-      }
-
       try {
         const res = await fetch(SCRIPT_URL);
         const json = await res.json();
@@ -279,7 +282,7 @@
 
       const selPrefixo = document.getElementById('filterPrefixo');
       selPrefixo.innerHTML = '<option value="TODOS">Todos os Prefixos</option>';
-      Array.from(prefixos).sort().forEach(p => {
+      Array.from(prefixos).sort((a,b) => String(a).localeCompare(String(b))).forEach(p => {
         selPrefixo.innerHTML += `<option value="${p}">${p}</option>`;
       });
 
@@ -300,7 +303,6 @@
         return matchPref && matchMot;
       });
 
-      // Cálculos
       let totalLitros = 0;
       filtrados.forEach(r => {
         totalLitros += parseNumeroBr(r.LITROS);
@@ -309,14 +311,12 @@
       const qtd = filtrados.length;
       const media = qtd > 0 ? (totalLitros / qtd).toFixed(1) : 0;
 
-      // Atualizar KPIs
       document.getElementById('kpiTotalLitros').innerText = `${totalLitros.toLocaleString('pt-BR', {minimumFractionDigits: 1})} L`;
       document.getElementById('kpiQtdAbastecimentos').innerText = qtd;
       document.getElementById('kpiMediaLitros').innerText = `${media} L`;
 
-      // Preencher Tabela
       const tbody = document.getElementById('tbodyDiesel');
-      tbody.innerHTML = filtrados.slice(0, 50).map(r => `
+      tbody.innerHTML = filtrados.slice(0, 100).map(r => `
         <tr>
           <td>${r['Carimbo de data/hora'] || '-'}</td>
           <td><b>${r.PREFIXO || '-'}</b></td>
@@ -346,7 +346,6 @@
     }
 
     function atualizarGraficos(dados) {
-      // Litros por Prefixo
       const mapPref = {};
       dados.forEach(r => {
         const p = r.PREFIXO || 'N/D';
@@ -357,7 +356,6 @@
       chartPrefixos.data.datasets[0].data = Object.values(mapPref);
       chartPrefixos.update();
 
-      // Litros por Motorista (Top 7)
       const mapMot = {};
       dados.forEach(r => {
         const m = r.MOTORISTA || 'N/D';
