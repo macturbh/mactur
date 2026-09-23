@@ -3,82 +3,146 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mactur - Painel de Controle de Diesel e Frota</title>
+  <title>Mactur - Painel Avançado de Controle de Diesel e Frota</title>
   <!-- Chart.js para Gráficos -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js Plugin DataLabels para Rótulos nos Gráficos -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
   <!-- FontAwesome para Ícones -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --bg-primary: #f4f7f4;
-      --bg-card: #ffffff;
+      --bg-primary: #121c14;
+      --bg-card: rgba(255, 255, 255, 0.94);
       --text-main: #1c2b1e;
-      --text-muted: #5d6e5f;
+      --text-muted: #4a5c4c;
       --mactur-green: #008037;   /* Verde Mactur */
       --mactur-yellow: #f1c40f;  /* Amarelo Mactur */
-      --border-color: #e1e9e2;
+      --mactur-blue: #1e3a8a;    /* Azul Escuro */
+      --border-color: #d0ded2;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
     body { 
-      background-color: var(--bg-primary); 
+      background: linear-gradient(rgba(10, 20, 12, 0.82), rgba(10, 20, 12, 0.88)), 
+                  url('WhatsApp Image 2026-01-12 at 14.43.07.jpeg') no-repeat center center fixed;
+      background-size: cover;
       color: var(--text-main); 
       padding: 20px; 
+      min-height: 100vh;
     }
 
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 25px;
+      margin-bottom: 20px;
       background: var(--bg-card);
-      padding: 20px 25px;
+      backdrop-filter: blur(8px);
+      padding: 15px 25px;
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-      border-left: 6px solid var(--mactur-green);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      border-left: 8px solid var(--mactur-green);
     }
 
-    .title-area h1 { font-size: 1.5rem; color: var(--text-main); font-weight: 700; }
-    .title-area p { font-size: 0.875rem; color: var(--text-muted); }
+    .brand-area {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
 
-    /* Barra de Filtros */
+    .brand-logo {
+      height: 52px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .title-area h1 { font-size: 1.4rem; color: var(--text-main); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .title-area p { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+
+    /* Seção de Filtro por Mês */
+    .month-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      padding: 12px 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      align-items: center;
+    }
+
+    .month-bar span { font-weight: bold; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-right: 10px; }
+
+    .btn-month {
+      background: #eaf2eb;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .btn-month:hover, .btn-month.active {
+      background: var(--mactur-green);
+      color: white;
+      border-color: var(--mactur-green);
+    }
+
+    .btn-month-clear {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    /* Barra de Filtros Principais */
     .filter-bar {
       display: flex;
       gap: 15px;
       background: var(--bg-card);
+      backdrop-filter: blur(8px);
       padding: 15px 20px;
       border-radius: 12px;
       margin-bottom: 25px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       flex-wrap: wrap;
       align-items: center;
-      border-top: 3px solid var(--mactur-yellow);
+      border-top: 4px solid var(--mactur-yellow);
     }
 
-    .filter-group { display: flex; flex-direction: column; gap: 5px; min-width: 180px; }
-    .filter-group label { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); text-transform: uppercase; }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; min-width: 160px; flex: 1; }
+    .filter-group label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
     .filter-group select {
       padding: 8px 12px;
       border: 1px solid var(--border-color);
       border-radius: 6px;
       outline: none;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      background-color: #fff;
     }
 
     /* Grid de KPIs */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       gap: 20px;
       margin-bottom: 25px;
     }
 
     .kpi-card {
       background: var(--bg-card);
+      backdrop-filter: blur(8px);
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -87,38 +151,48 @@
 
     .kpi-card.yellow { border-left-color: var(--mactur-yellow); }
 
-    .kpi-info h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); }
-    .kpi-info .value { font-size: 1.5rem; font-weight: bold; margin-top: 5px; color: var(--text-main); }
+    .kpi-info h3 { font-size: 0.78rem; text-transform: uppercase; font-weight: 700; color: var(--text-muted); }
+    .kpi-info .value { font-size: 1.45rem; font-weight: 800; margin-top: 5px; color: var(--text-main); }
     .kpi-icon { font-size: 2rem; opacity: 0.25; color: var(--mactur-green); }
 
     /* Layout dos Gráficos */
-    .charts-grid {
+    .charts-grid-6 {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      grid-template-columns: repeat(6, 1fr);
       gap: 20px;
       margin-bottom: 25px;
     }
 
     .chart-card {
       background: var(--bg-card);
+      backdrop-filter: blur(8px);
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
     }
 
-    .chart-card h3 { font-size: 1rem; margin-bottom: 15px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    /* Utilitários de Colunas */
+    .col-6 { grid-column: span 6; }
+    .col-3 { grid-column: span 3; }
+    .col-2 { grid-column: span 2; }
+
+    .chart-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 15px; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+    .chart-container { position: relative; height: 320px; width: 100%; }
 
     /* Tabela de Abastecimentos */
     .table-card {
       background: var(--bg-card);
+      backdrop-filter: blur(8px);
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       overflow-x: auto;
     }
 
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
-    th { background: #f1f7f2; padding: 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
+    th { background: #e8f2e9; padding: 12px 10px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); text-transform: uppercase; font-size: 0.75rem; font-weight: 800; }
     td { padding: 10px; border-bottom: 1px solid var(--border-color); }
 
     .badge {
@@ -130,41 +204,91 @@
       color: var(--mactur-green);
     }
 
+    .badge-status {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      display: inline-block;
+      background-color: #e2e8f0;
+      color: #334155;
+    }
+
+    .badge-status.st-boa {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-status.st-baixa {
+      background-color: #fee2e2;
+      color: #991b1b;
+    }
+
     button.btn-refresh {
       background: var(--mactur-green);
       color: white;
       border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
       cursor: pointer;
       font-size: 0.85rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(0,128,55,0.3);
+      transition: all 0.2s;
     }
-    button.btn-refresh:hover { opacity: 0.9; }
+    button.btn-refresh:hover { opacity: 0.9; transform: translateY(-1px); }
 
-    @media (max-width: 768px) {
-      .charts-grid { grid-template-columns: 1fr; }
+    @media (max-width: 1200px) {
+      .col-2 { grid-column: span 3; }
+    }
+
+    @media (max-width: 900px) {
+      .col-6, .col-3, .col-2 { grid-column: span 6; }
+      header { flex-direction: column; align-items: flex-start; gap: 15px; }
     }
   </style>
 </head>
 <body>
 
   <header>
-    <div class="title-area">
-      <h1><i class="fa-solid fa-bus" style="color: var(--mactur-green);"></i> Mactur - Painel de Abastecimento (Diesel)</h1>
-      <p>Dados integrados diretamente do Google Forms em tempo real</p>
+    <div class="brand-area">
+      <img src="logo.png" alt="Mactur Logo" class="brand-logo">
+      <div class="title-area">
+        <h1>Painel de Gestão de Diesel e Frota</h1>
+        <p>Acompanhamento Corporativo do Consumo, Custos e Operações</p>
+      </div>
     </div>
     <button class="btn-refresh" onclick="carregarDados()"><i class="fa-solid fa-sync"></i> Atualizar Dados</button>
   </header>
 
-  <!-- Filtros -->
+  <!-- Filtro de Mês Rápido -->
+  <div class="month-bar" id="monthFilterContainer">
+    <span><i class="fa-solid fa-calendar-days"></i> Mês:</span>
+    <button class="btn-month btn-month-clear active" onclick="filtrarMes('TODOS', this)">Todos</button>
+    <button class="btn-month" onclick="filtrarMes('01', this)">Jan</button>
+    <button class="btn-month" onclick="filtrarMes('02', this)">Fev</button>
+    <button class="btn-month" onclick="filtrarMes('03', this)">Mar</button>
+    <button class="btn-month" onclick="filtrarMes('04', this)">Abr</button>
+    <button class="btn-month" onclick="filtrarMes('05', this)">Mai</button>
+    <button class="btn-month" onclick="filtrarMes('06', this)">Jun</button>
+    <button class="btn-month" onclick="filtrarMes('07', this)">Jul</button>
+    <button class="btn-month" onclick="filtrarMes('08', this)">Ago</button>
+    <button class="btn-month" onclick="filtrarMes('09', this)">Set</button>
+    <button class="btn-month" onclick="filtrarMes('10', this)">Out</button>
+    <button class="btn-month" onclick="filtrarMes('11', this)">Nov</button>
+    <button class="btn-month" onclick="filtrarMes('12', this)">Dez</button>
+  </div>
+
+  <!-- Barra de Filtros Principais -->
   <div class="filter-bar">
     <div class="filter-group">
       <label><i class="fa-solid fa-bus"></i> Prefixo / Veículo</label>
       <select id="filterPrefixo" onchange="aplicarFiltros()">
-        <option value="TODOS">Todos os Prefixos</option>
+        <option value="TODOS">Todos os Veículos</option>
       </select>
     </div>
 
@@ -172,6 +296,27 @@
       <label><i class="fa-solid fa-user-gear"></i> Motorista</label>
       <select id="filterMotorista" onchange="aplicarFiltros()">
         <option value="TODOS">Todos os Motoristas</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label><i class="fa-solid fa-truck-monster"></i> Tipo de Veículo</label>
+      <select id="filterTipoVeiculo" onchange="aplicarFiltros()">
+        <option value="TODOS">Todos os Tipos</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label><i class="fa-solid fa-route"></i> Tipo de Serviço</label>
+      <select id="filterServico" onchange="aplicarFiltros()">
+        <option value="TODOS">Todos os Serviços</option>
+      </select>
+    </div>
+
+    <div class="filter-group">
+      <label><i class="fa-solid fa-list-check"></i> Status</label>
+      <select id="filterStatus" onchange="aplicarFiltros()">
+        <option value="TODOS">Todos os Status</option>
       </select>
     </div>
   </div>
@@ -188,7 +333,7 @@
 
     <div class="kpi-card">
       <div class="kpi-info">
-        <h3>Abastecimentos Registrados</h3>
+        <h3>Qtd Abastecimentos</h3>
         <div class="value" id="kpiQtdAbastecimentos">0</div>
       </div>
       <i class="fa-solid fa-clipboard-list kpi-icon"></i>
@@ -196,37 +341,98 @@
 
     <div class="kpi-card yellow">
       <div class="kpi-info">
-        <h3>Média de Litros / Abastecimento</h3>
-        <div class="value" id="kpiMediaLitros">0 L</div>
+        <h3>VALOR TOTAL</h3>
+        <div class="value" id="kpiValorTotal">R$ 0,00</div>
       </div>
-      <i class="fa-solid fa-calculator kpi-icon"></i>
+      <i class="fa-solid fa-sack-dollar kpi-icon"></i>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-info">
+        <h3>MÉDIA GERAL GARAGEM</h3>
+        <div class="value" id="kpiKmL">0.0 KM/L</div>
+      </div>
+      <i class="fa-solid fa-gauge-high kpi-icon"></i>
     </div>
   </div>
 
   <!-- Gráficos -->
-  <div class="charts-grid">
-    <div class="chart-card">
-      <h3><i class="fa-solid fa-chart-bar" style="color:var(--mactur-green)"></i> Litros por Prefixo (Veículo)</h3>
-      <canvas id="chartLitrosPrefixo"></canvas>
+  <div class="charts-grid-6">
+    
+    <!-- 1. Evolução Mensal (Litros) Comparativa por Serviço -->
+    <div class="chart-card col-6">
+      <h3><i class="fa-solid fa-chart-column" style="color:var(--mactur-green)"></i> Evolução do Consumo Mensal de Diesel (Litros) — Fretamento vs Rodoviário</h3>
+      <div class="chart-container">
+        <canvas id="chartEvolucaoMensal"></canvas>
+      </div>
     </div>
 
-    <div class="chart-card">
-      <h3><i class="fa-solid fa-user" style="color:var(--mactur-yellow)"></i> Top Motoristas por Volume (Litros)</h3>
-      <canvas id="chartMotoristas"></canvas>
+    <!-- 2. Evolução Mensal de Custo (R$) Comparativa por Serviço -->
+    <div class="chart-card col-6">
+      <h3><i class="fa-solid fa-sack-dollar" style="color:var(--mactur-green)"></i> Evolução do Custo Mensal com Diesel (R$) — Fretamento vs Rodoviário</h3>
+      <div class="chart-container">
+        <canvas id="chartEvolucaoCustoMensal"></canvas>
+      </div>
     </div>
+
+    <!-- 3. Consumo por Tipo de Serviço -->
+    <div class="chart-card col-2">
+      <h3><i class="fa-solid fa-route" style="color:var(--mactur-yellow)"></i> Consumo por Tipo de Serviço</h3>
+      <div class="chart-container">
+        <canvas id="chartTipoServico"></canvas>
+      </div>
+    </div>
+
+    <!-- 4. Consumo por Tipo de Veículo -->
+    <div class="chart-card col-2">
+      <h3><i class="fa-solid fa-bus" style="color:var(--mactur-green)"></i> Consumo por Tipo de Veículo</h3>
+      <div class="chart-container">
+        <canvas id="chartTipoVeiculo"></canvas>
+      </div>
+    </div>
+
+    <!-- 5. Registros por Status (%) -->
+    <div class="chart-card col-2">
+      <h3><i class="fa-solid fa-chart-pie" style="color:var(--mactur-yellow)"></i> Registros por Status (%)</h3>
+      <div class="chart-container">
+        <canvas id="chartStatus"></canvas>
+      </div>
+    </div>
+
+    <!-- 6. Consumo Acumulado por Veículo Top 10 -->
+    <div class="chart-card col-3">
+      <h3><i class="fa-solid fa-ranking-star" style="color:var(--mactur-green)"></i> Consumo Acumulado por Veículo (Top 10)</h3>
+      <div class="chart-container">
+        <canvas id="chartConsumoCarro"></canvas>
+      </div>
+    </div>
+
+    <!-- 7. Consumo Total por Motorista -->
+    <div class="chart-card col-3">
+      <h3><i class="fa-solid fa-users" style="color:var(--mactur-blue)"></i> Consumo Total por Motorista</h3>
+      <div class="chart-container">
+        <canvas id="chartMotoristas"></canvas>
+      </div>
+    </div>
+
   </div>
 
-  <!-- Tabela de Histórico -->
+  <!-- Tabela de Histórico de Registros -->
   <div class="table-card">
-    <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Registros da Planilha</h3>
+    <h3 style="margin-bottom: 15px;"><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Registros da Base</h3>
     <table>
       <thead>
         <tr>
           <th>Data / Hora</th>
-          <th>Prefixo</th>
           <th>Motorista</th>
+          <th>Prefixo</th>
           <th>KM Atual</th>
           <th>Litros</th>
+          <th>Média (KM/L)</th>
+          <th>Tipo de Veículo</th>
+          <th>Serviço</th>
+          <th>Custo</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody id="tbodyDiesel"></tbody>
@@ -234,31 +440,65 @@
   </div>
 
   <script>
-    // URL oficial do seu Apps Script
+    Chart.register(ChartDataLabels);
+
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwZNeS_dO53xQa2a3Ld9_lb0Vwn2nb_UZO6aCY10ReB_qKHyVX7u_3ako-mNjDqYbzMbQ/exec';
 
     let dbDiesel = [];
-    let chartPrefixos, chartMotoristas;
+    let mesSelecionado = 'TODOS';
 
-    // Função para buscar valor de coluna sem se preocupar com maiúsculas/minúsculas
-    function getCampo(linha, ...nomesPossiveis) {
-      if (!linha) return '';
-      const chaves = Object.keys(linha);
-      for (let nome of nomesPossiveis) {
-        if (linha[nome] !== undefined && linha[nome] !== '') return linha[nome];
-        const chaveEncontrada = chaves.find(k => k.trim().toLowerCase() === nome.toLowerCase());
-        if (chaveEncontrada && linha[chaveEncontrada] !== undefined && linha[chaveEncontrada] !== '') {
-          return linha[chaveEncontrada];
+    let chartEvolucaoMensal, chartEvolucaoCustoMensal, chartTipoServico, chartTipoVeiculo, chartStatus, chartConsumoCarro, chartMotoristas;
+
+    /* Formatação de Data e Hora convertendo fuso UTC para horário oficial de Brasília */
+    function formatarDataHoraExata(str) {
+      if (!str) return '-';
+      const s = String(str).trim();
+      
+      // Se for ISO vindo da Sheets (ex: 2026-01-12T17:43:07.000Z)
+      if (s.includes('T') || s.includes('Z')) {
+        const d = new Date(s);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleString('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+          }).replace(',', '');
         }
       }
-      return '';
+      return s;
     }
 
-    // Converte textos numéricos do Forms BR (ex: "72,6" ou "18.301") para número real
+    /* Converter para Timestamp para ordenação cronológica exata */
+    function converterParaTimestamp(str) {
+      if (!str) return 0;
+      const s = String(str).trim();
+      
+      let parsed = Date.parse(s);
+      if (!isNaN(parsed)) return parsed;
+
+      if (s.includes('/')) {
+        const partes = s.split(' ');
+        const dataPartes = partes[0].split('/');
+        if (dataPartes.length === 3) {
+          const dia = dataPartes[0].padStart(2, '0');
+          const mes = dataPartes[1].padStart(2, '0');
+          const ano = dataPartes[2];
+          const hora = partes[1] || '00:00:00';
+          parsed = Date.parse(`${ano}-${mes}-${dia}T${hora}`);
+          if (!isNaN(parsed)) return parsed;
+        }
+      }
+      return 0;
+    }
+
     function parseNumeroBr(valor) {
       if (valor === null || valor === undefined || valor === '') return 0;
       if (typeof valor === 'number') return valor;
-      let str = valor.toString().trim();
+      let str = valor.toString().trim().replace('R$', '').trim();
       if (str.includes(',')) {
         str = str.replace(/\./g, '').replace(',', '.');
       } else {
@@ -272,151 +512,502 @@
       return parseFloat(str) || 0;
     }
 
-    // Função para formatar a data/hora para o padrão brasileiro (DD/MM/YYYY HH:mm)
-    function formatarDataHora(valor) {
-      if (!valor) return '-';
-      
-      // Se já estiver formatado como texto tipo "03/09/2026 05:53:01", apenas retorna
-      if (typeof valor === 'string' && valor.includes('/')) return valor;
-
-      const d = new Date(valor);
-      if (isNaN(d.getTime())) return valor;
-
-      const dia = String(d.getDate()).padStart(2, '0');
-      const mes = String(d.getMonth() + 1).padStart(2, '0');
-      const ano = d.getFullYear();
-      const hora = String(d.getHours()).padStart(2, '0');
-      const min = String(d.getMinutes()).padStart(2, '0');
-
-      return `${dia}/${mes}/${ano} ${hora}:${min}`;
+    function getBadgeStatusHTML(status) {
+      const st = String(status || '').trim().toUpperCase();
+      let classeExtra = '';
+      if (st === 'BOA') {
+        classeExtra = 'st-boa';
+      } else if (st === 'BAIXA') {
+        classeExtra = 'st-baixa';
+      }
+      return `<span class="badge-status ${classeExtra}">${status || '-'}</span>`;
     }
 
     async function carregarDados() {
       try {
         const res = await fetch(SCRIPT_URL);
         const json = await res.json();
-        dbDiesel = json.diesel || [];
-        
+
+        dbDiesel = (json.diesel || json || []).map(r => {
+          const rawData = r['Carimbo de data/hora'] || r.DATA || r['DATA / HORA'] || '';
+          return {
+            dataHoraOriginal: rawData,
+            dataHora: formatarDataHoraExata(rawData),
+            motorista: String(r.MOTORISTA || '').trim(),
+            prefixo: String(r.PREFIXO || '').trim(),
+            kmAtual: r['KM ATUAL'] || r.KM || '',
+            litros: parseNumeroBr(r.LITROS),
+            media: parseNumeroBr(r['MÉDIA'] || r.MEDIA),
+            tipoVeiculo: String(r['TIPO DE VICULO'] || r['TIPO DE VEICULO'] || r.TIPO || 'NÃO INFORMADO').trim(),
+            servico: String(r.SERVIÇO || r.SERVICO || 'NÃO INFORMADO').trim(),
+            custo: parseNumeroBr(r.CUSTO),
+            status: String(r.STATUS || 'PENDENTE').trim()
+          };
+        });
+
         popularFiltros();
         aplicarFiltros();
       } catch (err) {
-        console.error("Erro ao carregar dados do Apps Script:", err);
+        console.error("Erro ao carregar os dados:", err);
       }
     }
 
     function popularFiltros() {
       const prefixos = new Set();
       const motoristas = new Set();
+      const tiposVeiculo = new Set();
+      const servicos = new Set();
+      const statusSet = new Set();
 
       dbDiesel.forEach(r => {
-        const pref = getCampo(r, 'prefixo', 'PREFIXO', 'Prefixo');
-        const mot = getCampo(r, 'motorista', 'MOTORISTA', 'Motorista');
-        
-        if (pref) prefixos.add(pref);
-        if (mot) motoristas.add(mot);
+        if (r.prefixo) prefixos.add(r.prefixo);
+        if (r.motorista) motoristas.add(r.motorista);
+        if (r.tipoVeiculo) tiposVeiculo.add(r.tipoVeiculo);
+        if (r.servico) servicos.add(r.servico);
+        if (r.status) statusSet.add(r.status);
       });
 
-      const selPrefixo = document.getElementById('filterPrefixo');
-      selPrefixo.innerHTML = '<option value="TODOS">Todos os Prefixos</option>';
-      Array.from(prefixos).sort((a,b) => String(a).localeCompare(String(b))).forEach(p => {
-        selPrefixo.innerHTML += `<option value="${p}">${p}</option>`;
-      });
+      preencherSelect('filterPrefixo', prefixos, 'Todos os Veículos');
+      preencherSelect('filterMotorista', motoristas, 'Todos os Motoristas');
+      preencherSelect('filterTipoVeiculo', tiposVeiculo, 'Todos os Tipos');
+      preencherSelect('filterServico', servicos, 'Todos os Serviços');
+      preencherSelect('filterStatus', statusSet, 'Todos os Status');
+    }
 
-      const selMotorista = document.getElementById('filterMotorista');
-      selMotorista.innerHTML = '<option value="TODOS">Todos os Motoristas</option>';
-      Array.from(motoristas).sort().forEach(m => {
-        selMotorista.innerHTML += `<option value="${m}">${m}</option>`;
+    function preencherSelect(id, conjunto, labelPadrao) {
+      const sel = document.getElementById(id);
+      sel.innerHTML = `<option value="TODOS">${labelPadrao}</option>`;
+      Array.from(conjunto).sort().forEach(val => {
+        sel.innerHTML += `<option value="${val}">${val}</option>`;
       });
     }
 
+    function filtrarMes(mes, btn) {
+      mesSelecionado = mes;
+      document.querySelectorAll('.btn-month').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      aplicarFiltros();
+    }
+
     function aplicarFiltros() {
-      const prefSelecionado = document.getElementById('filterPrefixo').value;
-      const motSelecionado = document.getElementById('filterMotorista').value;
+      const pref = document.getElementById('filterPrefixo').value;
+      const mot = document.getElementById('filterMotorista').value;
+      const tipoV = document.getElementById('filterTipoVeiculo').value;
+      const serv = document.getElementById('filterServico').value;
+      const st = document.getElementById('filterStatus').value;
 
       const filtrados = dbDiesel.filter(item => {
-        const prefItem = getCampo(item, 'prefixo', 'PREFIXO', 'Prefixo');
-        const motItem = getCampo(item, 'motorista', 'MOTORISTA', 'Motorista');
+        const matchPref = pref === 'TODOS' || item.prefixo === pref;
+        const matchMot = mot === 'TODOS' || item.motorista === mot;
+        const matchTipo = tipoV === 'TODOS' || item.tipoVeiculo === tipoV;
+        const matchServ = serv === 'TODOS' || item.servico === serv;
+        const matchSt = st === 'TODOS' || item.status === st;
 
-        const matchPref = prefSelecionado === 'TODOS' || String(prefItem) === String(prefSelecionado);
-        const matchMot = motSelecionado === 'TODOS' || String(motItem) === String(motSelecionado);
-        return matchPref && matchMot;
+        let matchMes = true;
+        if (mesSelecionado !== 'TODOS') {
+          const dataStr = item.dataHoraOriginal || item.dataHora;
+          if (dataStr) {
+            let mesData = '';
+            if (dataStr.includes('-')) {
+              const parts = dataStr.split('-');
+              if (parts.length >= 2) mesData = parts[1].includes('T') ? parts[1].split('T')[0] : parts[1];
+            } else if (dataStr.includes('/')) {
+              mesData = dataStr.split('/')[1];
+            }
+            matchMes = (mesData && mesData.padStart(2, '0') === mesSelecionado);
+          }
+        }
+
+        return matchPref && matchMot && matchTipo && matchServ && matchSt && matchMes;
       });
 
+      // ORDENAÇÃO: DO MAIS ATUAL PARA O MAIS ANTIGO
+      filtrados.sort((a, b) => {
+        const timeA = converterParaTimestamp(a.dataHoraOriginal || a.dataHora);
+        const timeB = converterParaTimestamp(b.dataHoraOriginal || b.dataHora);
+        return timeB - timeA;
+      });
+
+      // CÁLCULOS KPI
       let totalLitros = 0;
+      let valorTotal = 0;
+      let somaMedia = 0;
+      let qtdMediasValidas = 0;
+
       filtrados.forEach(r => {
-        const lit = getCampo(r, 'litros', 'LITROS', 'Litros');
-        totalLitros += parseNumeroBr(lit);
+        totalLitros += r.litros;
+        valorTotal += r.custo;
+        if (r.media > 0) {
+          somaMedia += r.media;
+          qtdMediasValidas++;
+        }
       });
 
       const qtd = filtrados.length;
-      const media = qtd > 0 ? (totalLitros / qtd).toFixed(1) : 0;
+      const mediaKmL = qtdMediasValidas > 0 ? (somaMedia / qtdMediasValidas).toFixed(2) : '0.00';
 
       document.getElementById('kpiTotalLitros').innerText = `${totalLitros.toLocaleString('pt-BR', {minimumFractionDigits: 1})} L`;
       document.getElementById('kpiQtdAbastecimentos').innerText = qtd;
-      document.getElementById('kpiMediaLitros').innerText = `${media} L`;
+      document.getElementById('kpiValorTotal').innerText = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      document.getElementById('kpiKmL').innerText = `${mediaKmL} KM/L`;
 
+      // TABELA
       const tbody = document.getElementById('tbodyDiesel');
-      tbody.innerHTML = filtrados.slice(0, 100).map(r => {
-        const rawDataHora = getCampo(r, 'Carimbo de data/hora', 'carimbo de data/hora', 'data', 'Data');
-        const dataHoraFormatted = formatarDataHora(rawDataHora); // <--- Formatação aplicada aqui
-        const pref = getCampo(r, 'prefixo', 'PREFIXO', 'Prefixo');
-        const mot = getCampo(r, 'motorista', 'MOTORISTA', 'Motorista');
-        const km = getCampo(r, 'km atual', 'KM ATUAL', 'Km Atual', 'km');
-        const lit = getCampo(r, 'litros', 'LITROS', 'Litros');
-
-        return `
-          <tr>
-            <td>${dataHoraFormatted}</td>
-            <td><b>${pref || '-'}</b></td>
-            <td>${mot || '-'}</td>
-            <td>${km || '-'}</td>
-            <td><span class="badge">${parseNumeroBr(lit).toFixed(1)} L</span></td>
-          </tr>
-        `;
-      }).join('');
+      tbody.innerHTML = filtrados.slice(0, 100).map(r => `
+        <tr>
+          <td>${r.dataHora || '-'}</td>
+          <td><b>${r.motorista || '-'}</b></td>
+          <td>${r.prefixo || '-'}</td>
+          <td>${r.kmAtual || '-'}</td>
+          <td><span class="badge">${r.litros.toFixed(1)} L</span></td>
+          <td><b>${r.media > 0 ? r.media.toFixed(2) : '-'}</b></td>
+          <td>${r.tipoVeiculo}</td>
+          <td>${r.servico}</td>
+          <td><b>${r.custo ? r.custo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00'}</b></td>
+          <td>${getBadgeStatusHTML(r.status)}</td>
+        </tr>
+      `).join('');
 
       atualizarGraficos(filtrados);
     }
 
+    function getConfigDatalabelsBarraHorizontal(corTextoPadrao = '#1c2b1e') {
+      return {
+        display: true,
+        anchor: 'end',
+        align: function(context) {
+          const chart = context.chart;
+          const meta = chart.getDatasetMeta(context.datasetIndex);
+          if (!meta.data[context.dataIndex]) return 'end';
+          const barRight = meta.data[context.dataIndex].x;
+          const chartRight = chart.chartArea ? chart.chartArea.right : chart.width;
+          return (chartRight - barRight < 65) ? 'start' : 'end';
+        },
+        color: function(context) {
+          const chart = context.chart;
+          const meta = chart.getDatasetMeta(context.datasetIndex);
+          if (meta.data[context.dataIndex]) {
+            const barRight = meta.data[context.dataIndex].x;
+            const chartRight = chart.chartArea ? chart.chartArea.right : chart.width;
+            if (chartRight - barRight < 65) return '#ffffff';
+          }
+          return corTextoPadrao;
+        },
+        font: { weight: 'bold', size: 13 },
+        formatter: (val) => val > 0 ? `${val.toLocaleString('pt-BR', {maximumFractionDigits: 0})} L` : ''
+      };
+    }
+
     function initCharts() {
-      const ctxP = document.getElementById('chartLitrosPrefixo').getContext('2d');
-      chartPrefixos = new Chart(ctxP, {
+      const noGridScales = {
+        x: { grid: { display: false } },
+        y: { grid: { display: false } }
+      };
+
+      // 1. Evolução Mensal em Litros (Fretamento vs Rodoviário Lado a Lado)
+      chartEvolucaoMensal = new Chart(document.getElementById('chartEvolucaoMensal'), {
         type: 'bar',
-        data: { labels: [], datasets: [{ label: 'Total Litros', data: [], backgroundColor: '#008037', borderRadius: 5 }] },
-        options: { responsive: true }
+        data: { 
+          labels: [], 
+          datasets: [
+            { 
+              label: 'Fretamento', 
+              data: [], 
+              backgroundColor: '#008037', // Verde Mactur
+              borderRadius: 4 
+            },
+            { 
+              label: 'Rodoviário', 
+              data: [], 
+              backgroundColor: '#f1c40f', // Amarelo Mactur
+              borderRadius: 4 
+            }
+          ] 
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { font: { weight: 'bold' } }
+            },
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'top',
+              color: '#1c2b1e',
+              font: { weight: 'bold', size: 11 },
+              formatter: (val) => val > 0 ? `${val.toLocaleString('pt-BR', {maximumFractionDigits: 0})} L` : ''
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grace: '15%', grid: { display: false } }
+          }
+        }
       });
 
-      const ctxM = document.getElementById('chartMotoristas').getContext('2d');
-      chartMotoristas = new Chart(ctxM, {
+      // 2. Evolução Mensal de Custo R$ (Fretamento vs Rodoviário Lado a Lado)
+      chartEvolucaoCustoMensal = new Chart(document.getElementById('chartEvolucaoCustoMensal'), {
         type: 'bar',
-        data: { labels: [], datasets: [{ label: 'Litros Abastecidos', data: [], backgroundColor: '#f1c40f', borderRadius: 5 }] },
-        options: { responsive: true, indexAxis: 'y' }
+        data: { 
+          labels: [], 
+          datasets: [
+            { 
+              label: 'Fretamento', 
+              data: [], 
+              backgroundColor: '#008037', // Verde Mactur
+              borderRadius: 4 
+            },
+            { 
+              label: 'Rodoviário', 
+              data: [], 
+              backgroundColor: '#f1c40f', // Amarelo Mactur
+              borderRadius: 4 
+            }
+          ] 
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: { font: { weight: 'bold' } }
+            },
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'top',
+              color: '#1c2b1e',
+              font: { weight: 'bold', size: 11 },
+              formatter: (val) => val > 0 ? val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }) : ''
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grace: '15%', grid: { display: false } }
+          }
+        }
+      });
+
+      // 3. Consumo por Tipo de Serviço
+      chartTipoServico = new Chart(document.getElementById('chartTipoServico'), {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Litros', data: [], backgroundColor: '#f1c40f', borderRadius: 4 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            datalabels: getConfigDatalabelsBarraHorizontal('#1c2b1e')
+          },
+          scales: noGridScales
+        }
+      });
+
+      // 4. Consumo por Tipo de Veículo
+      chartTipoVeiculo = new Chart(document.getElementById('chartTipoVeiculo'), {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Total Litros', data: [], backgroundColor: '#008037', borderRadius: 4 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            datalabels: getConfigDatalabelsBarraHorizontal('#1c2b1e')
+          },
+          scales: noGridScales
+        }
+      });
+
+      // 5. Registros por Status (%)
+      chartStatus = new Chart(document.getElementById('chartStatus'), {
+        type: 'pie',
+        data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            datalabels: {
+              display: true,
+              color: '#ffffff',
+              font: { weight: 'bold', size: 15 },
+              formatter: (value, ctx) => {
+                let sum = 0;
+                let dataArr = ctx.chart.data.datasets[0].data;
+                dataArr.map(data => { sum += data; });
+                let percentage = sum > 0 ? (value * 100 / sum).toFixed(1) + "%" : "0%";
+                return percentage;
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  let val = context.raw;
+                  let pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                  return `${context.label}: ${val} registros (${pct}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // 6. Acumulado por Veículo Top 10
+      chartConsumoCarro = new Chart(document.getElementById('chartConsumoCarro'), {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Total Litros', data: [], backgroundColor: '#f1c40f', borderRadius: 4 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            datalabels: {
+              display: true,
+              anchor: 'end',
+              align: 'top',
+              color: '#1c2b1e',
+              font: { weight: 'bold', size: 13 },
+              formatter: (val) => val > 0 ? `${val.toLocaleString('pt-BR', {maximumFractionDigits: 0})} L` : ''
+            }
+          },
+          scales: {
+            x: { grid: { display: false } },
+            y: { beginAtZero: true, grace: '12%', grid: { display: false } }
+          }
+        }
+      });
+
+      // 7. Consumo por Motorista
+      chartMotoristas = new Chart(document.getElementById('chartMotoristas'), {
+        type: 'bar',
+        data: { labels: [], datasets: [{ label: 'Litros', data: [], backgroundColor: '#1e3a8a', borderRadius: 4 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: {
+            datalabels: getConfigDatalabelsBarraHorizontal('#1e3a8a')
+          },
+          scales: noGridScales
+        }
       });
     }
 
     function atualizarGraficos(dados) {
-      const mapPref = {};
+      const mesesMap = { '01': 'Jan', '02': 'Fev', '03': 'Mar', '04': 'Abr', '05': 'Mai', '06': 'Jun', '07': 'Jul', '08': 'Ago', '09': 'Set', '10': 'Out', '11': 'Nov', '12': 'Dez' };
+      
+      const mapMensalLitrosFretamento = { '01':0, '02':0, '03':0, '04':0, '05':0, '06':0, '07':0, '08':0, '09':0, '10':0, '11':0, '12':0 };
+      const mapMensalLitrosRodoviario = { '01':0, '02':0, '03':0, '04':0, '05':0, '06':0, '07':0, '08':0, '09':0, '10':0, '11':0, '12':0 };
+
+      const mapMensalCustoFretamento = { '01':0, '02':0, '03':0, '04':0, '05':0, '06':0, '07':0, '08':0, '09':0, '10':0, '11':0, '12':0 };
+      const mapMensalCustoRodoviario = { '01':0, '02':0, '03':0, '04':0, '05':0, '06':0, '07':0, '08':0, '09':0, '10':0, '11':0, '12':0 };
+
       dados.forEach(r => {
-        const p = getCampo(r, 'prefixo', 'PREFIXO', 'Prefixo') || 'N/D';
-        const lit = getCampo(r, 'litros', 'LITROS', 'Litros');
-        mapPref[p] = (mapPref[p] || 0) + parseNumeroBr(lit);
+        const d = r.dataHoraOriginal || r.dataHora;
+        if (d) {
+          let m = null;
+          if (d.includes('-')) {
+            const parts = d.split('-');
+            if (parts.length >= 2) m = parts[1].includes('T') ? parts[1].split('T')[0] : parts[1];
+          } else if (d.includes('/')) {
+            m = d.split('/')[1];
+          }
+          if (m && mapMensalLitrosFretamento[m] !== undefined) {
+            const servUpper = String(r.servico || '').toUpperCase();
+            if (servUpper.includes('FRET')) {
+              mapMensalLitrosFretamento[m] += r.litros;
+              mapMensalCustoFretamento[m] += r.custo;
+            } else if (servUpper.includes('RODO')) {
+              mapMensalLitrosRodoviario[m] += r.litros;
+              mapMensalCustoRodoviario[m] += r.custo;
+            }
+          }
+        }
       });
 
-      chartPrefixos.data.labels = Object.keys(mapPref);
-      chartPrefixos.data.datasets[0].data = Object.values(mapPref);
-      chartPrefixos.update();
+      // 1. Atualiza Litros Mensal
+      chartEvolucaoMensal.data.labels = Object.keys(mapMensalLitrosFretamento).map(m => mesesMap[m]);
+      chartEvolucaoMensal.data.datasets[0].data = Object.values(mapMensalLitrosFretamento);
+      chartEvolucaoMensal.data.datasets[1].data = Object.values(mapMensalLitrosRodoviario);
+      chartEvolucaoMensal.update();
 
+      // 2. Atualiza Custo R$ Mensal
+      chartEvolucaoCustoMensal.data.labels = Object.keys(mapMensalCustoFretamento).map(m => mesesMap[m]);
+      chartEvolucaoCustoMensal.data.datasets[0].data = Object.values(mapMensalCustoFretamento);
+      chartEvolucaoCustoMensal.data.datasets[1].data = Object.values(mapMensalCustoRodoviario);
+      chartEvolucaoCustoMensal.update();
+
+      // 3. Tipo de Serviço
+      const mapServico = {};
+      dados.forEach(r => {
+        const s = r.servico || 'Não Definido';
+        mapServico[s] = (mapServico[s] || 0) + r.litros;
+      });
+      const sortedServico = Object.entries(mapServico).sort((a,b) => b[1] - a[1]);
+      chartTipoServico.data.labels = sortedServico.map(i => i[0]);
+      chartTipoServico.data.datasets[0].data = sortedServico.map(i => i[1]);
+      chartTipoServico.update();
+
+      // 4. Tipo de Veículo
+      const mapTipoV = {};
+      dados.forEach(r => {
+        const tv = r.tipoVeiculo || 'Não Definido';
+        mapTipoV[tv] = (mapTipoV[tv] || 0) + r.litros;
+      });
+      const sortedTipoV = Object.entries(mapTipoV).sort((a,b) => b[1] - a[1]);
+      chartTipoVeiculo.data.labels = sortedTipoV.map(i => i[0]);
+      chartTipoVeiculo.data.datasets[0].data = sortedTipoV.map(i => i[1]);
+      chartTipoVeiculo.update();
+
+      // 5. Status em Porcentagem (%)
+      const mapStatus = {};
+      dados.forEach(r => {
+        const st = r.status || 'Pendente';
+        mapStatus[st] = (mapStatus[st] || 0) + 1;
+      });
+      const sortedStatus = Object.entries(mapStatus).sort((a,b) => b[1] - a[1]);
+      
+      const coresStatusMap = {
+        'BOA': '#008037',
+        'BAIXA': '#e74c3c',
+        'PENDENTE': '#f1c40f',
+        'ALERTA': '#e67e22'
+      };
+
+      const labelsStatus = sortedStatus.map(i => i[0]);
+      const dataStatus = sortedStatus.map(i => i[1]);
+      const bgColors = labelsStatus.map(lbl => coresStatusMap[String(lbl).trim().toUpperCase()] || '#2980b9');
+
+      chartStatus.data.labels = labelsStatus;
+      chartStatus.data.datasets[0].backgroundColor = bgColors;
+      chartStatus.data.datasets[0].data = dataStatus;
+      chartStatus.update();
+
+      // 6. Acumulado por Veículo Top 10
+      const mapCarro = {};
+      dados.forEach(r => {
+        const p = r.prefixo || 'N/D';
+        mapCarro[p] = (mapCarro[p] || 0) + r.litros;
+      });
+      const sortedCarros = Object.entries(mapCarro).sort((a,b) => b[1] - a[1]).slice(0, 10);
+      chartConsumoCarro.data.labels = sortedCarros.map(i => i[0]);
+      chartConsumoCarro.data.datasets[0].data = sortedCarros.map(i => i[1]);
+      chartConsumoCarro.update();
+
+      // 7. Motoristas Top 10
       const mapMot = {};
       dados.forEach(r => {
-        const m = getCampo(r, 'motorista', 'MOTORISTA', 'Motorista') || 'N/D';
-        const lit = getCampo(r, 'litros', 'LITROS', 'Litros');
-        mapMot[m] = (mapMot[m] || 0) + parseNumeroBr(lit);
+        const m = r.motorista || 'N/D';
+        mapMot[m] = (mapMot[m] || 0) + r.litros;
       });
-
-      const sortedMot = Object.entries(mapMot).sort((a,b) => b[1] - a[1]).slice(0, 7);
-
-      chartMotoristas.data.labels = sortedMot.map(item => item[0]);
-      chartMotoristas.data.datasets[0].data = sortedMot.map(item => item[1]);
+      const sortedMot = Object.entries(mapMot).sort((a,b) => b[1] - a[1]).slice(0, 10);
+      chartMotoristas.data.labels = sortedMot.map(i => i[0]);
+      chartMotoristas.data.datasets[0].data = sortedMot.map(i => i[1]);
       chartMotoristas.update();
     }
 
