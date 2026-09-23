@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mactur - Lançamento de Abastecimento</title>
+  
+  <meta name="theme-color" content="#008037">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --mactur-green: #008037;
+      --mactur-yellow: #f1c40f;
+      --bg-dark: #121c14;
+      --card-bg: #ffffff;
+      --text-main: #1c2b1e;
+      --text-muted: #5c705e;
+      --border-color: #d1ded3;
+      --error-red: #e53e3e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      padding: 12px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* Oculta spinners numéricos */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      overflow: hidden;
+      border-top: 6px solid var(--mactur-yellow);
+    }
+
+    .app-header {
+      background: var(--mactur-green);
+      color: white;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .app-header h2 { font-size: 1.15rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+    .app-header p { font-size: 0.75rem; opacity: 0.9; }
+
+    form { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border-color);
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      background-color: #f9fbf9;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--mactur-green);
+      background-color: #fff;
+    }
+
+    .form-control[readonly] {
+      background-color: #edf2f7;
+      color: #4a5568;
+      border-color: #cbd5e0;
+      cursor: not-allowed;
+    }
+
+    .form-control.input-invalid {
+      border-color: var(--error-red) !important;
+      background-color: #fff5f5 !important;
+      color: var(--error-red) !important;
+    }
+
+    .error-msg {
+      color: var(--error-red);
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: none;
+      margin-top: 2px;
+    }
+
+    .info-panel {
+      background: #f0f7f2;
+      border: 1px solid #c8e0cc;
+      border-radius: 10px;
+      padding: 12px 15px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .info-box { display: flex; flex-direction: column; }
+    .info-box span.title { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .info-box span.value { font-size: 1.2rem; font-weight: 800; color: var(--mactur-green); margin-top: 2px; }
+
+    .badge-status {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-align: center;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+    .badge-boa { background-color: #d1fae5; color: #065f46; }
+    .badge-baixa { background-color: #fee2e2; color: #991b1b; }
+    .badge-neutro { background-color: #e2e8f0; color: #475569; }
+
+    .btn-submit {
+      background: var(--mactur-green);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(0, 128, 55, 0.3);
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+
+    .btn-submit:disabled { background: #a0aec0; cursor: not-allowed; box-shadow: none; }
+
+    .loading-overlay {
+      display: none;
+      text-align: center;
+      padding: 10px;
+      font-weight: 600;
+      color: var(--mactur-green);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="app-header">
+      <div>
+        <h2>Mactur Frota</h2>
+        <p>Lançamento de Abastecimento</p>
+      </div>
+      <i class="fa-solid fa-gas-pump fa-2x" style="color: var(--mactur-yellow);"></i>
+    </div>
+
+    <form id="formAbastecimento" onsubmit="enviarFormulario(event)">
+      
+      <!-- ABASTECEDOR (Coluna K) -->
+      <div class="form-group">
+        <label><i class="fa-solid fa-id-card"></i> ABASTECEDOR</label>
+        <select id="usuario" class="form-control" required onchange="salvarUsuarioLocal(this.value)">
+          <option value="">Selecione o Abastecedor</option>
+          <option value="FERNANDO JESUS PIRES">FERNANDO JESUS PIRES</option>
+          <option value="ALANDERSON CRISTOVÃO DA CONCEIÇÃO">ALANDERSON CRISTOVÃO DA CONCEIÇÃO</option>
+          <option value="GUILHERME FÁRIAS">GUILHERME FÁRIAS</option>
+        </select>
+      </div>
+
+      <!-- Prefixo do Veículo (Coluna C) -->
+      <div class="form-group">
+        <label><i class="fa-solid fa-bus"></i> Prefixo do Veículo</label>
+        <select id="prefixo" class="form-control" required onchange="aoSelecionarPrefixo()">
+          <option value="">Carregando veículos...</option>
+        </select>
+      </div>
+
+      <!-- PAINEL OCULTO: Detalhes do Veículo -->
+      <div id="painelInfoVeiculo" style="display: none;" class="info-panel">
+        <div class="info-box">
+          <span class="title">Tipo de Veículo</span>
+          <input type="text" id="tipoVeiculo" class="form-control" readonly value="" style="margin-top: 4px; font-size: 0.85rem;">
+        </div>
+        <div class="info-box">
+          <span class="title">Tipo de Serviço</span>
+          <input type="text" id="servico" class="form-control" readonly value="" style="margin-top: 4px; font-size: 0.85rem;">
+        </div>
+      </div>
+
+      <!-- Motorista (Coluna B) -->
+      <div class="form-group">
+        <label><i class="fa-solid fa-user"></i> Motorista</label>
+        <select id="motorista" class="form-control" required>
+          <option value="">Carregando motoristas...</option>
+        </select>
+      </div>
+
+      <!-- Painel Informativo KM Anterior -->
+      <div class="info-panel">
+        <div class="info-box">
+          <span class="title">KM Anterior</span>
+          <span class="value" id="dispKmAnterior">0</span>
+        </div>
+        <div class="info-box">
+          <span class="title">Status Estimado</span>
+          <div id="dispStatusBadge" class="badge-status badge-neutro">AGUARDANDO</div>
+        </div>
+      </div>
+
+      <!-- KM Atual (Coluna D) -->
+      <div class="form-group">
+        <label><i class="fa-solid fa-gauge-high"></i> KM Atual</label>
+        <input type="number" inputmode="numeric" id="kmAtual" class="form-control" placeholder="Ex: 154200" required oninput="validarECalcular()">
+        <span id="kmError" class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> O KM Atual deve ser estritamente maior que o KM Anterior!</span>
+      </div>
+
+      <!-- Litros Abastecidos (Coluna E) -->
+      <div class="form-group">
+        <label><i class="fa-solid fa-filter-circle-dollar"></i> Litros Abastecidos</label>
+        <input type="number" inputmode="decimal" step="0.01" id="litros" class="form-control" placeholder="Ex: 120.5" required oninput="validarECalcular()">
+      </div>
+
+      <!-- Painel Informativo da Média em Tempo Real -->
+      <div class="info-panel">
+        <div class="info-box">
+          <span class="title">KM Percorridos</span>
+          <span class="value" id="dispKmRodado">0 KM</span>
+        </div>
+        <div class="info-box">
+          <span class="title">Média Calculada</span>
+          <span class="value" id="dispMedia">0.00 KM/L</span>
+        </div>
+      </div>
+
+      <button type="submit" id="btnSalvar" class="btn-submit">
+        <i class="fa-solid fa-paper-plane"></i> Finalizar Abastecimento
+      </button>
+
+      <div id="loadingOverlay" class="loading-overlay">
+        <i class="fa-solid fa-spinner fa-spin"></i> Registrando na base de dados...
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiBFilHmJwuqbr2odx9ub9rrsHlf8MPoSjFXpiTOpqLruvYT52xFBOJ9BYpU4Ig_MByg/exec';
+
+    let baseDados = { lastKmByPrefix: {}, prefixos: [], motoristas: [], veiculosInfo: {} };
+    let kmAnteriorAtual = 0;
+    let mediaCalculada = 0;
+    let statusCalculado = 'BOA';
+
+    async function inicializarApp() {
+      try {
+        const res = await fetch(SCRIPT_URL);
+        baseDados = await res.json();
+
+        if (baseDados.error) {
+          alert("Erro retornado do servidor: " + baseDados.error);
+          return;
+        }
+
+        const campoUsuario = document.getElementById('usuario');
+        const usuarioSalvo = localStorage.getItem('mactur_abastecedor');
+        if (usuarioSalvo) {
+          campoUsuario.value = usuarioSalvo;
+        }
+
+        const selectPrefixo = document.getElementById('prefixo');
+        selectPrefixo.innerHTML = '<option value="">Selecione o Prefixo</option>';
+        if (baseDados.prefixos && baseDados.prefixos.length > 0) {
+          baseDados.prefixos.forEach(p => {
+            selectPrefixo.innerHTML += `<option value="${p}">${p}</option>`;
+          });
+        }
+
+        const selectMotorista = document.getElementById('motorista');
+        selectMotorista.innerHTML = '<option value="">Selecione o Motorista</option>';
+        if (baseDados.motoristas && baseDados.motoristas.length > 0) {
+          baseDados.motoristas.forEach(m => {
+            selectMotorista.innerHTML += `<option value="${m}">${m}</option>`;
+          });
+        }
+
+      } catch (err) {
+        alert("Erro ao conectar com a base do Google Sheets. Verifique a conexão.");
+      }
+    }
+
+    function salvarUsuarioLocal(val) {
+      if (val) localStorage.setItem('mactur_abastecedor', val.trim());
+    }
+
+    function aoSelecionarPrefixo() {
+      const pref = document.getElementById('prefixo').value;
+      const painelVeiculo = document.getElementById('painelInfoVeiculo');
+
+      if (!pref) {
+        painelVeiculo.style.display = 'none';
+        kmAnteriorAtual = 0;
+        document.getElementById('dispKmAnterior').innerText = '0';
+        validarECalcular();
+        return;
+      }
+
+      painelVeiculo.style.display = 'grid';
+      
+      const info = (baseDados.veiculosInfo && baseDados.veiculosInfo[pref]) || {};
+      document.getElementById('tipoVeiculo').value = info.tipoVeiculo || 'NÃO ESPECIFICADO';
+      document.getElementById('servico').value = info.servico || 'NÃO ESPECIFICADO';
+
+      kmAnteriorAtual = baseDados.lastKmByPrefix[pref] || 0;
+      
+      const inputKm = document.getElementById('kmAtual');
+      if (kmAnteriorAtual > 0) {
+        inputKm.min = kmAnteriorAtual + 1;
+        document.getElementById('dispKmAnterior').innerText = `${kmAnteriorAtual.toLocaleString('pt-BR')} KM`;
+      } else {
+        inputKm.removeAttribute('min');
+        document.getElementById('dispKmAnterior').innerText = 'Primeiro Registro';
+      }
+
+      validarECalcular();
+    }
+
+    function validarECalcular() {
+      const inputKm = document.getElementById('kmAtual');
+      const kmError = document.getElementById('kmError');
+      const btnSalvar = document.getElementById('btnSalvar');
+      const kmAtual = parseFloat(inputKm.value) || 0;
+      const litros = parseFloat(document.getElementById('litros').value) || 0;
+
+      if (kmAnteriorAtual > 0 && kmAtual > 0 && kmAtual <= kmAnteriorAtual) {
+        inputKm.classList.add('input-invalid');
+        kmError.style.display = 'block';
+        btnSalvar.disabled = true;
+        
+        document.getElementById('dispKmRodado').innerText = '0 KM';
+        document.getElementById('dispMedia').innerText = '0.00 KM/L';
+        return;
+      } else {
+        inputKm.classList.remove('input-invalid');
+        kmError.style.display = 'none';
+        btnSalvar.disabled = false;
+      }
+
+      if (kmAtual > 0 && kmAnteriorAtual > 0 && kmAtual > kmAnteriorAtual) {
+        const kmRodado = kmAtual - kmAnteriorAtual;
+        document.getElementById('dispKmRodado').innerText = `${kmRodado.toLocaleString('pt-BR')} KM`;
+
+        if (litros > 0) {
+          mediaCalculada = parseFloat((kmRodado / litros).toFixed(2));
+          document.getElementById('dispMedia').innerText = `${mediaCalculada} KM/L`;
+
+          const badge = document.getElementById('dispStatusBadge');
+          if (mediaCalculada < 2.2) {
+            statusCalculado = 'BAIXA';
+            badge.innerText = 'BAIXA';
+            badge.className = 'badge-status badge-baixa';
+          } else {
+            statusCalculado = 'BOA';
+            badge.innerText = 'BOA';
+            badge.className = 'badge-status badge-boa';
+          }
+          return;
+        }
+      }
+
+      document.getElementById('dispKmRodado').innerText = '0 KM';
+      document.getElementById('dispMedia').innerText = '0.00 KM/L';
+      const badge = document.getElementById('dispStatusBadge');
+      badge.innerText = 'AGUARDANDO';
+      badge.className = 'badge-status badge-neutro';
+    }
+
+    async function enviarFormulario(event) {
+      event.preventDefault();
+
+      const kmAtual = parseFloat(document.getElementById('kmAtual').value) || 0;
+      const abastecedorVal = document.getElementById('usuario').value;
+
+      if (kmAnteriorAtual > 0 && kmAtual <= kmAnteriorAtual) {
+        alert(`O KM Atual (${kmAtual}) precisa ser estritamente maior que o KM Anterior (${kmAnteriorAtual}).`);
+        return;
+      }
+
+      salvarUsuarioLocal(abastecedorVal);
+
+      // Envia os dados principais para o Apps Script
+      const payload = {
+        usuario: abastecedorVal,                               // Coluna K
+        motorista: document.getElementById('motorista').value, // Coluna B
+        prefixo: document.getElementById('prefixo').value,     // Coluna C
+        kmAtual: kmAtual,                                      // Coluna D
+        kmAnterior: kmAnteriorAtual,
+        litros: parseFloat(document.getElementById('litros').value) || 0 // Coluna E
+      };
+
+      document.getElementById('btnSalvar').disabled = true;
+      document.getElementById('loadingOverlay').style.display = 'block';
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        alert("Abastecimento registrado com sucesso!");
+        
+        baseDados.lastKmByPrefix[payload.prefixo] = kmAtual;
+        
+        document.getElementById('formAbastecimento').reset();
+        document.getElementById('usuario').value = abastecedorVal;
+        document.getElementById('painelInfoVeiculo').style.display = 'none';
+        document.getElementById('dispKmAnterior').innerText = '0';
+        document.getElementById('dispKmRodado').innerText = '0 KM';
+        document.getElementById('dispMedia').innerText = '0.00 KM/L';
+        document.getElementById('dispStatusBadge').innerText = 'AGUARDANDO';
+        document.getElementById('dispStatusBadge').className = 'badge-status badge-neutro';
+
+      } catch (err) {
+        alert("Erro ao gravar abastecimento. Verifique sua conexão.");
+      } finally {
+        document.getElementById('btnSalvar').disabled = false;
+        document.getElementById('loadingOverlay').style.display = 'none';
+      }
+    }
+
+    window.onload = inicializarApp;
+  </script>
+</body>
+</html>
